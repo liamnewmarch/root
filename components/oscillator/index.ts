@@ -2,13 +2,15 @@ import { Fader } from '../fader/fader.lit';
 import { audioCtx } from '../../lib/audioContext';
 
 export type NoteOffEvent = CustomEvent<{ note: number }>;
-export type NoteOnEvent = CustomEvent<{ note: number }>;
+export type NoteOnEvent = CustomEvent<{ note: number, velocity: number }>;
+
 declare global {
   interface GlobalEventHandlersEventMap {
     noteOff: NoteOffEvent;
     noteOn: NoteOnEvent;
   }
 }
+
 export class BaseOscillator {
   static noteToFrequency(note: number) {
     return 2 ** ((note - 69) / 12) * 440;
@@ -29,11 +31,11 @@ export class BaseOscillator {
 
   stickyPitchBend = false;
 
+  sustainActive = false;
+
+  sustainedNotes: Set<number> = new Set();
+
   waveform: keyof typeof BaseOscillator.waveforms = 'sine';
-
-  audioNode?: OscillatorNode;
-
-  gainNode?: GainNode;
 
   isNoteOn = false;
 
@@ -45,9 +47,12 @@ export class BaseOscillator {
     this.__onStickyToggle = this.__onStickyToggle.bind(this);
     this.__onNoteOn = this.__onNoteOn.bind(this);
     this.__onNoteOff = this.__onNoteOff.bind(this);
-    this.gainNode = audioCtx.createGain();
-    this.gainNode.gain.setTargetAtTime(0.2, audioCtx.currentTime, 0.015);
+    this.__onSustainOn = this.__onSustainOn.bind(this);
+    this.__onSustainOff = this.__onSustainOff.bind(this);
+
     document.addEventListener('noteOff', this.__onNoteOff);
+    document.addEventListener('sustainOn', this.__onSustainOn);
+    document.addEventListener('sustainOff', this.__onSustainOff);
   }
 
   __onWaveform(event: InputEvent) {
@@ -88,10 +93,7 @@ export class BaseOscillator {
 
   __onNoteOn(event: NoteOnEvent) {
     this.isNoteOn = true;
-    this.start(event.detail.note);
-    if (this.gainNode) {
-      return this.audioNode?.connect(this.gainNode);
-    }
+    this.start(event.detail.note, event.detail.velocity);
   }
 
   __onNoteOff(event: NoteOffEvent) {
@@ -99,25 +101,56 @@ export class BaseOscillator {
     this.stop(event.detail.note);
   }
 
-  //creates the osc and sets the audio Node
-  start(note: number) {
+  __onSustainOn() {
+    this.sustainActive = true;
+  }
+
+  __onSustainOff() {
+    this.sustainActive = false;
+    for (const note of this.sustainedNotes) {
+      this.stop(note);
+    }
+  }
+
+  /** Creates an audio graph for each note pressed */
+  start(note: number, gain: number = 0.2) {
     if (this.activeNotes.has(note)) return;
-    this.audioNode = new OscillatorNode(audioCtx, {
+
+    // Create the oscillator and gain, and add to activeNotes
+    const audioNode = new OscillatorNode(audioCtx, {
       detune: this.detune,
       frequency: BaseOscillator.noteToFrequency(note),
       type: this.waveform,
     });
-    this.audioNode.start();
-    this.activeNotes.set(note, this.audioNode);
-    this.audioNode.onended = () => {
-      this.audioNode?.disconnect();
+    const gainNode = new GainNode(audioCtx, {
+      gain,
+    });
+    audioNode.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    audioNode.start();
+
+    this.activeNotes.set(note, audioNode);
+
+    // Clean up this note when the oscillator is stopped
+    audioNode.onended = () => {
+      audioNode.disconnect();
+      gainNode.disconnect();
       this.activeNotes.delete(note);
     };
   }
 
+  /** Stops an oscillator unless sustain is active */
   stop(note: number) {
-    if (!this.activeNotes.has(note)) return;
-    this.audioNode = this.activeNotes.get(note);
-    this.audioNode?.stop();
+    if (this.sustainActive) {
+      // Sustain is active, move this note to sustainedNotes
+      if (this.activeNotes.has(note) && !this.sustainedNotes.has(note)) {
+        this.sustainedNotes.add(note);
+      }
+    } else {
+      // Sustain is inactive, stop the note and remove it
+      this.activeNotes.get(note)?.stop();
+      this.activeNotes.delete(note);
+      this.sustainedNotes.delete(note);
+    }
   }
 }
