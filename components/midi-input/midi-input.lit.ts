@@ -16,6 +16,7 @@ const NUM_MIDI_CHANNELS = 16;
 
 /** CustomEvent factory helper function */
 function customEvent(type: string, detail?: unknown): CustomEvent<unknown> {
+  console.debug('MIDI event', type, detail);
   return new CustomEvent(type, {
     bubbles: true,
     cancelable: true,
@@ -31,22 +32,23 @@ function getEventForData(data: Uint8Array): CustomEvent<unknown> | void {
 
   // Commands outside this range are unsupported by us and can be ignored.
   if (data[0] < MIDICommand.NOTE_OFF || (
-    data[0] >= MIDICommand.NOTE_ON + NUM_MIDI_CHANNELS
+    data[0] >= MIDICommand.PITCH_WHEEL + NUM_MIDI_CHANNELS
   )) return;
 
   // The following MIDI commands are grouped into ranges of 16 channels.
-  const channel = data[0] % 16;
+  const channel = data[0] % NUM_MIDI_CHANNELS;
   const command = data[0] - channel;
 
   // Note On or Off
   if (command === MIDICommand.NOTE_ON || command === MIDICommand.NOTE_OFF) {
-    const [, note, velocity] = data;
+    const [, note, value] = data;
+    const velocity = value / 0xff;
 
     // Some MIDI devices send note-off as a note-on with a velocity of zero.
-    if (command === MIDICommand.NOTE_ON || velocity) {
+    if (command === MIDICommand.NOTE_ON && velocity) {
       return customEvent('noteOn', { channel, note, velocity });
     } else {
-      return customEvent('noteOff', { channel, note, velocity });
+      return customEvent('noteOff', { channel, note });
     }
   }
 
@@ -54,7 +56,7 @@ function getEventForData(data: Uint8Array): CustomEvent<unknown> | void {
   if (command === MIDICommand.PITCH_WHEEL) {
     // Pitch Wheel has 16 bit precision. This is achieved by combining the two
     // data bytes (LSB, MSB) into a 16 bit value.
-    const value = data[1] + (data[2] << 8);
+    const value = (data[1] + (data[2] << 8)) / 0xffff;
     return customEvent('pitchWheel', { value });
   }
 
@@ -66,7 +68,7 @@ function getEventForData(data: Uint8Array): CustomEvent<unknown> | void {
 
     // Modulation Wheel
     if (control === MIDIControlChange.MODWHEEL) {
-      return customEvent('modWheel', { value });
+      return customEvent('modWheel', { value: value / 0xff });
     }
 
     // Sustain (Damper Pedal)
