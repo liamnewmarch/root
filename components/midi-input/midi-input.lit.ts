@@ -31,9 +31,11 @@ function getEventForData(data: Uint8Array): CustomEvent<unknown> | void {
   // the MIDI command which changes the semantics of the remaining bytes.
 
   // Commands outside this range are unsupported by us and can be ignored.
-  if (data[0] < MIDICommand.NOTE_OFF || (
+  if (
+    data[0] < MIDICommand.NOTE_OFF ||
     data[0] >= MIDICommand.PITCH_WHEEL + NUM_MIDI_CHANNELS
-  )) return;
+  )
+    return;
 
   // The following MIDI commands are grouped into ranges of 16 channels.
   const channel = data[0] % NUM_MIDI_CHANNELS;
@@ -106,7 +108,7 @@ export class MIDIInputElement extends RootElement {
     if (event) {
       this.dispatchEvent(event);
     }
-  }
+  };
 }
 
 window.customElements.define('root-midi', MIDIInputElement);

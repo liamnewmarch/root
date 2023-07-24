@@ -2,7 +2,7 @@ import { Fader } from '../fader/fader.lit';
 import { audioCtx } from '../../lib/audioContext';
 
 export type NoteOffEvent = CustomEvent<{ note: number }>;
-export type NoteOnEvent = CustomEvent<{ note: number, velocity: number }>;
+export type NoteOnEvent = CustomEvent<{ note: number; velocity: number }>;
 
 declare global {
   interface GlobalEventHandlersEventMap {
