@@ -28,8 +28,8 @@ describe('Oscillator', () => {
     oscillator.start(69); // A4 - 440 Hz
     expect(oscillator.activeNotes.size).to.equal(1);
 
-    const oscillatorNode: OscillatorNode | undefined =
-      oscillator.activeNotes.get(69);
+    const oscillatorNode: OscillatorNode =
+      oscillator.activeNotes.get(69)!.oscillator;
     expect(oscillatorNode?.type).to.equal('sine');
     expect(oscillatorNode?.frequency.value).to.equal(440);
   });

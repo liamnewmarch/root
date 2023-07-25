@@ -23,7 +23,14 @@ export class BaseOscillator {
     triangle: 'Triangle',
   };
 
-  activeNotes: Map<number, OscillatorNode> = new Map();
+  activeNotes: Map<
+    number,
+    {
+      gain: GainNode;
+      oscillator: OscillatorNode;
+      stop: () => void;
+    }
+  > = new Map();
 
   detune = 0;
 
@@ -65,7 +72,7 @@ export class BaseOscillator {
   __onDetune(event: InputEvent) {
     if (!(event.currentTarget instanceof Fader)) return;
     this.detune = event.currentTarget.valueAsNumber * this.detuneAmount * 100;
-    for (const oscillator of this.activeNotes.values()) {
+    for (const { oscillator } of this.activeNotes.values()) {
       oscillator.detune.setValueAtTime(this.detune, audioCtx.currentTime);
     }
   }
@@ -80,7 +87,7 @@ export class BaseOscillator {
     if (this.stickyPitchBend) return;
     event.currentTarget.value = '0';
     this.detune = 0;
-    for (const oscillator of this.activeNotes.values()) {
+    for (const { oscillator } of this.activeNotes.values()) {
       oscillator.detune.setValueAtTime(this.detune, audioCtx.currentTime);
     }
   }
@@ -113,29 +120,35 @@ export class BaseOscillator {
   }
 
   /** Creates an audio graph for each note pressed */
-  start(note: number, gain: number = 0.2) {
+  start(note: number, velocity: number = 0.2) {
     if (this.activeNotes.has(note)) return;
 
     // Create the oscillator and gain, and add to activeNotes
-    const audioNode = new OscillatorNode(audioCtx, {
+    const oscillator = new OscillatorNode(audioCtx, {
       detune: this.detune,
       frequency: BaseOscillator.noteToFrequency(note),
       type: this.waveform,
     });
-    const gainNode = new GainNode(audioCtx, {
+    const gain = new GainNode(audioCtx, { gain: velocity });
+    oscillator.connect(gain);
+    gain.connect(audioCtx.destination);
+    oscillator.start();
+
+    this.activeNotes.set(note, {
       gain,
+      oscillator,
+      stop: () => {
+        oscillator.stop();
+        // Free up the note to be retriggered
+        this.activeNotes.delete(note);
+        this.sustainedNotes.delete(note);
+      },
     });
-    audioNode.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    audioNode.start();
 
-    this.activeNotes.set(note, audioNode);
-
-    // Clean up this note when the oscillator is stopped
-    audioNode.onended = () => {
-      audioNode.disconnect();
-      gainNode.disconnect();
-      this.activeNotes.delete(note);
+    // Clean up audio nodes after the oscillator has stopped
+    oscillator.onended = () => {
+      oscillator.disconnect();
+      gain.disconnect();
     };
   }
 
@@ -147,10 +160,8 @@ export class BaseOscillator {
         this.sustainedNotes.add(note);
       }
     } else {
-      // Sustain is inactive, stop the note and remove it
+      // Sustain is inactive, stop the note
       this.activeNotes.get(note)?.stop();
-      this.activeNotes.delete(note);
-      this.sustainedNotes.delete(note);
     }
   }
 }
