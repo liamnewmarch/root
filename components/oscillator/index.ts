@@ -121,7 +121,10 @@ export class BaseOscillator {
 
   /** Creates an audio graph for each note pressed */
   start(note: number, velocity: number = 0.2) {
-    if (this.activeNotes.has(note)) return;
+    if (this.activeNotes.has(note)) {
+      // If this note is already active, stop it so we can start again
+      this.activeNotes.get(note)?.stop();
+    }
 
     // Create the oscillator and gain, and add to activeNotes
     const oscillator = new OscillatorNode(audioCtx, {

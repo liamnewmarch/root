@@ -63,6 +63,7 @@ export class Keyboard extends RootElement {
   }
 
   __onKeyboarddown(event: KeyboardEvent) {
+    if (event.repeat) return; // Prevent repeat when key is held
     const note = this.getNoteForKey(event.key);
     if (!note) return;
     event.preventDefault();
