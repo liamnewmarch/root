@@ -43,7 +43,7 @@ build:
       - dist
 
 pages:
-  image: node:17
+  image: node:16
   stage: publish
   rules:
     - if: $CI_PROJECT_ROOT_NAMESPACE == 'potato-oss'

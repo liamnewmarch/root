@@ -79,7 +79,7 @@ The example below demonstrates a simple setup where the output of the oscillator
 
 ## Get involved
 
-Contributing to Root is easy. Check the [open issues](https://github.com/potatolondon/root/issues) – bugs and features labelled with *[good first issue](https://github.com/potatolondon/root/labels/good%20first%20issue)* are suitable for newcomers. Make sure to follow the linting and formatting guidelines below, and generate a build to test your changes. When you are ready, create a [pull request](https://github.com/potatolondon/root/compare) and one of the team will review your work.
+Contributing to Root is easy. Check the [open issues](https://gitlab.com/potato-oss/web-audio/root/-/issues) – bugs and features labelled with `good first issue` are suitable for newcomers. Make sure to follow the linting and formatting guidelines below, and generate a build to test your changes. When you are ready, create a [merge request](https://gitlab.com/potato/own-things/web-audio/synth/-/merge_requests/new) and one of the team will review your work.
 
 ### Lint and format
 
