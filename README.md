@@ -1,6 +1,6 @@
 # Root (Alpha release)
 
-![](https://github.com/potatolondon/root/blob/main/images/hero.webp?raw=true)
+![](https://gitlab.com/potato-oss/web-audio/root/-/raw/main/images/hero.webp)
 
 ## Overview
 
@@ -12,9 +12,9 @@ Root is an open-source project created by Potato Labs, an innovation hub at the 
 
 ### Try the demo
 
-[Read the Storybook documentation here.](https://potatolondon.github.io/root/)
+[Read the Storybook documentation here.](https://potato-oss.gitlab.io/web-audio/root/?path=/story/introduction--page)
 
-[Try the Root demo here.](https://potatolondon.github.io/root/?path=/story/demos-synth--basic)
+[Try the Root demo here.](https://potato-synth.appspot.com/)
 
 ### Install Root
 
@@ -43,7 +43,7 @@ Root comes with a demo that you can run locally. This is a great way to see how 
 To try this out, first clone this repository, then use npm to install the dependencies and start the development server.
 
 ```bash
-git clone https://github.com/potatolondon/root.git root
+git clone https://gitlab.com/potato-oss/web-audio/root.git
 cd root
 npm install
 npm start
@@ -51,10 +51,10 @@ npm start
 
 ## Modules
 
-- [Multi-wave oscillator module](https://potatolondon.github.io/root/?path=/story/components-oscillator--oscillator-module)
-- [Dual filter module](https://potatolondon.github.io/root/?path=/story/components-filter--basic)
-- [Single-wave oscillator module](https://potatolondon.github.io/root/?path=/story/components-oscillator--basic)
-- [Keyboard module](https://potatolondon.github.io/root/?path=/story/components-keyboard--basic)
+- [Multi-wave oscillator module](https://potato-oss.gitlab.io/web-audio/root/?path=/story/demos-synth--synth-oscillator-module)
+- [Dual filter module](https://potato-oss.gitlab.io/web-audio/root/?path=/story/components-filter--basic)
+- [Single-wave oscillator module](https://potato-oss.gitlab.io/web-audio/root/?path=/story/demos-synth--basic)
+- [Keyboard module](https://potato-oss.gitlab.io/web-audio/root/?path=/story/components-keyboard--basic)
 
 ## Build with Root
 
