@@ -6,7 +6,7 @@ stages:
 
 lint:
   stage: lint
-  image: node:17
+  image: node:16
   only:
     - merge_requests
     - main
@@ -17,7 +17,7 @@ lint:
 
 test:
   stage: test
-  image: node:17
+  image: node:16
   only:
     - merge_requests
     - main
@@ -29,7 +29,7 @@ test:
     - npm test
 
 build:
-  image: node:17
+  image: node:16
   stage: build
   only:
     - merge_requests
